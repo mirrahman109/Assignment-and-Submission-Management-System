@@ -122,7 +122,8 @@ public class SubmissionService : ISubmissionService
 
         var now = _clock.UtcNow;
         var isLate = now > submission.Assignment.Deadline;
-        if (isLate && !submission.Assignment.AllowLateSubmission)
+        var reopenedForRevision = submission.Status == SubmissionStatus.NeedsRevision;
+        if (isLate && !submission.Assignment.AllowLateSubmission && !reopenedForRevision)
         {
             throw new ForbiddenException("The deadline for this assignment has passed and late submissions are not allowed.");
         }
