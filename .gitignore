@@ -22,7 +22,3 @@ Thumbs.db
 .env
 .env.*
 !.env.example
-
-# AI tool config (not part of the submitted project)
-CLAUDE.md
-AGENTS.md
