@@ -1,0 +1,28 @@
+# .NET build output
+bin/
+obj/
+*.user
+*.suo
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env files (commit .env.example only)
+.env
+.env.*
+!.env.example
+
+# AI tool config (not part of the submitted project)
+CLAUDE.md
+AGENTS.md
