@@ -3,7 +3,7 @@ import type { UserSummary } from "../types";
 const TOKEN_KEY = "assignment_system_token";
 const USER_KEY = "assignment_system_user";
 
-// Mirrors the token into a plain (non-httpOnly) cookie purely so middleware.ts can see
+// Mirrors the token into a plain (non-httpOnly) cookie purely so proxy.ts can see
 // "is a token present" at the edge for UX redirects. The API itself never reads this
 // cookie — every request explicitly attaches the Authorization header from localStorage.
 const TOKEN_COOKIE = "auth_token";
