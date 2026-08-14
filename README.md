@@ -470,6 +470,12 @@ The brief leaves these underspecified; here is what was chosen and why.
 9. **`Marks` is a decimal**, so half marks (e.g. 8.5 / 10) are supported.
 10. **All timestamps are stored and compared in UTC**; the UI renders them in the viewer's local
     timezone.
+11. **"Manage application-level settings where necessary" is read as managing the structural
+    configuration the rest of the system depends on** — classes, subjects, which subjects are taught
+    to which class, and which teacher owns which class-subject. Those admin screens are the settings.
+    A separate key/value settings table was not added, because nothing in the specified behaviour is
+    tunable: no global grading scale, term dates, or notification policy is described. Adding an
+    empty settings feature would have been ceremony rather than function.
 
 ---
 

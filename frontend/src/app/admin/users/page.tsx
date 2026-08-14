@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { ApiError } from "@/lib/api/client";
-import { createUser, deactivateUser, listUsers } from "@/lib/api/usersApi";
+import { createUser, deactivateUser, listUsers, updateUser } from "@/lib/api/usersApi";
 import { listClasses } from "@/lib/api/classesApi";
 import type { ClassCourseResponse, UserResponse, UserRole } from "@/lib/types";
 import { createUserSchema, type CreateUserFormValues } from "@/lib/validation/userSchemas";
@@ -21,6 +21,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [classes, setClasses] = useState<ClassCourseResponse[]>([]);
   const [roleFilter, setRoleFilter] = useState<UserRole | "">("");
+  const [editing, setEditing] = useState<UserResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -74,6 +75,21 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function onSaveEdit(fullName: string, classCourseId: string) {
+    if (!token || !editing) return;
+    setError(null);
+    try {
+      await updateUser(token, editing.id, {
+        fullName,
+        classCourseId: editing.role === "Student" && classCourseId ? Number(classCourseId) : null,
+      });
+      setEditing(null);
+      await loadUsers();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to update user.");
+    }
+  }
+
   async function onDeactivate(user: UserResponse) {
     if (!token) return;
     if (!confirm(`Deactivate ${user.fullName}?`)) return;
@@ -98,9 +114,14 @@ export default function AdminUsersPage() {
       header: "Actions",
       render: (u) =>
         u.isActive ? (
-          <Button variant="danger" className="px-2 py-1 text-xs" onClick={() => onDeactivate(u)}>
-            Deactivate
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" className="px-2 py-1 text-xs" onClick={() => setEditing(u)}>
+              Edit
+            </Button>
+            <Button variant="danger" className="px-2 py-1 text-xs" onClick={() => onDeactivate(u)}>
+              Deactivate
+            </Button>
+          </div>
         ) : null,
     },
   ];
@@ -159,6 +180,74 @@ export default function AdminUsersPage() {
           <Table columns={columns} rows={users} keyFor={(u) => u.id} emptyMessage="No users found." />
         )}
       </Card>
+
+      {editing && (
+        <EditUserForm
+          user={editing}
+          classes={classes}
+          onCancel={() => setEditing(null)}
+          onSave={onSaveEdit}
+        />
+      )}
     </div>
+  );
+}
+
+/** Email and role are deliberately not editable: the email is the login identifier, and changing a
+ *  role would strand the class link and any assignments/submissions already tied to the account.
+ *  Deactivate and re-create instead. */
+function EditUserForm({
+  user,
+  classes,
+  onCancel,
+  onSave,
+}: {
+  user: UserResponse;
+  classes: ClassCourseResponse[];
+  onCancel: () => void;
+  onSave: (fullName: string, classCourseId: string) => Promise<void>;
+}) {
+  const [fullName, setFullName] = useState(user.fullName);
+  const [classCourseId, setClassCourseId] = useState(user.classCourseId ? String(user.classCourseId) : "");
+  const [isSaving, setIsSaving] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      await onSave(fullName, classCourseId);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <Card>
+      <h2 className="mb-1 text-lg font-medium">Edit {user.email}</h2>
+      <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+        Email and role can&apos;t be changed — deactivate and re-create the account instead.
+      </p>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+        <Input label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+        {user.role === "Student" && (
+          <Select label="Class" value={classCourseId} onChange={(e) => setClassCourseId(e.target.value)}>
+            <option value="">Select a class</option>
+            {classes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        )}
+        <div className="flex gap-2 sm:col-span-2">
+          <Button type="submit" disabled={isSaving || !fullName.trim()}>
+            {isSaving ? "Saving..." : "Save changes"}
+          </Button>
+          <Button type="button" variant="secondary" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </Card>
   );
 }
