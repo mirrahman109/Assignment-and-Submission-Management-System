@@ -11,6 +11,11 @@ const SECTIONS = [
     title: "Teacher Assignments",
     description: "Assign teachers to a class-subject they're allowed to manage.",
   },
+  {
+    href: "/admin/assignments",
+    title: "All Assignments",
+    description: "Oversight of every assignment and its submissions, drafts included.",
+  },
 ];
 
 export default function AdminDashboardPage() {

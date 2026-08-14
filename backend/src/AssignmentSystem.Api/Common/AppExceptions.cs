@@ -7,6 +7,15 @@ public class NotFoundException : Exception
     }
 }
 
+/// <summary>Authentication failed (bad credentials) — distinct from <see cref="ForbiddenException"/>,
+/// which means "authenticated, but not allowed to touch this resource".</summary>
+public class UnauthorizedAppException : Exception
+{
+    public UnauthorizedAppException(string message) : base(message)
+    {
+    }
+}
+
 public class ForbiddenException : Exception
 {
     public ForbiddenException(string message) : base(message)

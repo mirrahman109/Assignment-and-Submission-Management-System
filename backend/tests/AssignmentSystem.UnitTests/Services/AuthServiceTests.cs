@@ -44,7 +44,7 @@ public class AuthServiceTests : IDisposable
         await SeedUserAsync("teacher@test.local", "CorrectPassword1");
         var service = new AuthService(_db, new FakeJwtTokenGenerator(), _passwordHasher);
 
-        await Assert.ThrowsAsync<ValidationAppException>(() =>
+        await Assert.ThrowsAsync<UnauthorizedAppException>(() =>
             service.LoginAsync(new LoginRequest("teacher@test.local", "WrongPassword")));
     }
 
@@ -53,8 +53,35 @@ public class AuthServiceTests : IDisposable
     {
         var service = new AuthService(_db, new FakeJwtTokenGenerator(), _passwordHasher);
 
-        await Assert.ThrowsAsync<ValidationAppException>(() =>
+        await Assert.ThrowsAsync<UnauthorizedAppException>(() =>
             service.LoginAsync(new LoginRequest("nobody@test.local", "WhateverPassword")));
+    }
+
+    [Fact]
+    public async Task LoginAsync_Throws_WhenUserIsDeactivated()
+    {
+        var user = await SeedUserAsync("retired@test.local", "CorrectPassword1");
+        user.IsActive = false;
+        await _db.SaveChangesAsync();
+        var service = new AuthService(_db, new FakeJwtTokenGenerator(), _passwordHasher);
+
+        await Assert.ThrowsAsync<UnauthorizedAppException>(() =>
+            service.LoginAsync(new LoginRequest("retired@test.local", "CorrectPassword1")));
+    }
+
+    [Fact]
+    public async Task LoginAsync_GivesSameMessage_ForUnknownEmailAndWrongPassword()
+    {
+        await SeedUserAsync("teacher@test.local", "CorrectPassword1");
+        var service = new AuthService(_db, new FakeJwtTokenGenerator(), _passwordHasher);
+
+        var wrongPassword = await Assert.ThrowsAsync<UnauthorizedAppException>(() =>
+            service.LoginAsync(new LoginRequest("teacher@test.local", "WrongPassword")));
+        var unknownEmail = await Assert.ThrowsAsync<UnauthorizedAppException>(() =>
+            service.LoginAsync(new LoginRequest("nobody@test.local", "WrongPassword")));
+
+        // Identical wording keeps the endpoint from confirming which emails are registered.
+        Assert.Equal(unknownEmail.Message, wrongPassword.Message);
     }
 
     [Fact]

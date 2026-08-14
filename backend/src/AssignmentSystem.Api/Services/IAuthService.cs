@@ -28,13 +28,17 @@ public class AuthService : IAuthService
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
         if (user is null)
         {
-            throw new Common.ValidationAppException("email", "Invalid email or password.");
+            // Deliberately identical for "no such user" and "wrong password" so the response
+            // can't be used to enumerate which email addresses exist.
+            throw new Common.UnauthorizedAppException("Invalid email or password.");
         }
 
         var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
         if (result == PasswordVerificationResult.Failed)
         {
-            throw new Common.ValidationAppException("email", "Invalid email or password.");
+            // Deliberately identical for "no such user" and "wrong password" so the response
+            // can't be used to enumerate which email addresses exist.
+            throw new Common.UnauthorizedAppException("Invalid email or password.");
         }
 
         var (token, expiresAtUtc) = _jwtTokenGenerator.GenerateToken(user);

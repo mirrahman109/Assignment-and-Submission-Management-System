@@ -5,5 +5,6 @@ export function login(email: string, password: string): Promise<LoginResponse> {
   return apiFetch<LoginResponse>("/api/auth/login", {
     method: "POST",
     body: { email, password },
+    ignoreUnauthorizedHandler: true,
   });
 }

@@ -34,6 +34,7 @@ public class ExceptionHandlingMiddleware
         var (statusCode, title, errors) = ex switch
         {
             NotFoundException e => (HttpStatusCode.NotFound, e.Message, (IDictionary<string, string[]>?)null),
+            UnauthorizedAppException e => (HttpStatusCode.Unauthorized, e.Message, null),
             ForbiddenException e => (HttpStatusCode.Forbidden, e.Message, null),
             ConflictException e => (HttpStatusCode.Conflict, e.Message, null),
             ValidationAppException e => (HttpStatusCode.BadRequest, e.Message, e.Errors),

@@ -21,6 +21,9 @@ interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   token?: string | null;
+  /** Set on the login request: a 401 there means "wrong credentials", not "session expired",
+   *  so it must not trigger the global logout redirect. */
+  ignoreUnauthorizedHandler?: boolean;
 }
 
 // Registered by AuthContext so a 401 from any request can trigger a logout without
@@ -33,7 +36,7 @@ export function onUnauthorized(listener: UnauthorizedListener) {
 }
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, token } = options;
+  const { method = "GET", body, token, ignoreUnauthorizedHandler = false } = options;
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) {
@@ -53,7 +56,7 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   const data = (await response.json().catch(() => null)) as ProblemResponse | T | null;
 
   if (!response.ok) {
-    if (response.status === 401) {
+    if (response.status === 401 && !ignoreUnauthorizedHandler) {
       unauthorizedListener?.();
     }
     const problem = data as ProblemResponse | null;
