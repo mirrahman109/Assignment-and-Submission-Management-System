@@ -79,6 +79,16 @@ export default function StudentAssignmentDetailPage() {
 
   const isGraded = submission?.status === "Graded";
   const isPastDeadline = new Date(assignment.deadline).getTime() < Date.now();
+  const needsRevision = submission?.status === "NeedsRevision";
+
+  // Mirrors SubmissionService's rules so the form isn't offered when the API would reject it.
+  // The server remains the authority — this only avoids a pointless round trip.
+  const deadlineBlocks = isPastDeadline && !assignment.allowLateSubmission && !needsRevision;
+  const canWrite = !isGraded && !deadlineBlocks;
+
+  const lockReason = isGraded
+    ? "This submission has been graded and can no longer be edited. If your teacher reopens it for revision, you'll be able to edit it again."
+    : "The deadline has passed and this assignment does not accept late submissions.";
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -121,9 +131,21 @@ export default function StudentAssignmentDetailPage() {
         </Card>
       )}
 
-      {!isGraded && (
+      {!canWrite && (
+        <Card>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">{lockReason}</p>
+        </Card>
+      )}
+
+      {canWrite && (
         <Card>
           <h2 className="mb-4 text-lg font-medium">{submission ? "Edit your submission" : "Submit your work"}</h2>
+          {isPastDeadline && assignment.allowLateSubmission && !needsRevision && (
+            <p className="mb-4 text-sm text-amber-700 dark:text-amber-400">
+              The deadline has passed. Late submissions are allowed for this assignment, but yours will be marked
+              late.
+            </p>
+          )}
           <form onSubmit={handleSubmit(onSubmit)}>
             <Textarea label="Your answer" rows={6} {...register("answerText")} error={errors.answerText?.message} />
             <Input

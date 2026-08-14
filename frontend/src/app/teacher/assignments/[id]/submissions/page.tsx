@@ -143,7 +143,9 @@ export default function AssignmentSubmissionsPage() {
                     >
                       {gradingId === s.id ? "Cancel" : s.status === "Graded" ? "Re-grade" : "Grade"}
                     </Button>
-                    {s.status === "Graded" && (
+                    {/* Reopening works before grading too — a teacher may want the work redone
+                        rather than marked. It clears any existing grade server-side. */}
+                    {s.status !== "NeedsRevision" && (
                       <Button
                         variant="secondary"
                         className="px-2 py-1 text-xs"
