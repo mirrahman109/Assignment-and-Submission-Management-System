@@ -1,5 +1,7 @@
 # Assignment & Submission Management System
 
+[![CI](https://github.com/mirrahman109/Assignment-and-Submission-Management-System/actions/workflows/ci.yml/badge.svg)](https://github.com/mirrahman109/Assignment-and-Submission-Management-System/actions/workflows/ci.yml)
+
 A role-based assignment and submission system for a school or college. Teachers create assignments
 for a specific class + subject, students submit answers, and teachers grade them with marks and
 feedback. Admins provision the users, classes, subjects, and teaching assignments that everything
@@ -23,13 +25,14 @@ Built for the OnnoRokom Projukti Limited Assistant Software Engineer recruitment
 5. [Manual setup without Docker](#manual-setup-without-docker)
 6. [Database setup](#database-setup)
 7. [Running the tests](#running-the-tests)
-8. [API reference](#api-reference)
-9. [Project structure](#project-structure)
-10. [Data model](#data-model)
-11. [Key design decisions](#key-design-decisions)
-12. [How role-based access is enforced](#how-role-based-access-is-enforced)
-13. [Assumptions](#assumptions)
-14. [Known limitations](#known-limitations)
+8. [Continuous integration](#continuous-integration)
+9. [API reference](#api-reference)
+10. [Project structure](#project-structure)
+11. [Data model](#data-model)
+12. [Key design decisions](#key-design-decisions)
+13. [How role-based access is enforced](#how-role-based-access-is-enforced)
+14. [Assumptions](#assumptions)
+15. [Known limitations](#known-limitations)
 
 ---
 
@@ -260,6 +263,23 @@ What's covered:
 **End-to-end authorization** (via `WebApplicationFactory<Program>`, exercising the real HTTP pipeline)
 - An anonymous request to a secured endpoint is rejected.
 - A student's token is rejected by an Admin-only endpoint; an admin's token is accepted.
+
+---
+
+## Continuous integration
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and pull request to `main`:
+
+| Job | What it does |
+|---|---|
+| `backend` | `dotnet restore` → `dotnet build` → `dotnet test` — the same 26 tests as above |
+| `frontend` | `npm ci` → `npm run lint` → `npm run build` (which also runs the TypeScript check) |
+| `docker` | Builds both Dockerfiles (no push) — runs only after `backend` and `frontend` pass |
+
+No database service container is needed: the backend tests run against SQLite in-memory, not a
+live Postgres. The pipeline is deliberately CI-only — it verifies every push builds, tests, lints,
+and containerizes cleanly, without requiring a hosting account or secrets. There's no CD step,
+since a live deployment is explicitly optional per the brief.
 
 ---
 

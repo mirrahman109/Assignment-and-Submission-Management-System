@@ -26,6 +26,11 @@ export default function StudentAssignmentDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Reading Date.now() directly in the render body is impure — React may invoke a render more
+  // than once and discard results, so a raw clock read there can produce inconsistent output.
+  // The lazy initializer form runs once, on mount, which is fine here: this page doesn't need
+  // to react to the deadline ticking past while it's sitting open.
+  const [now] = useState(() => Date.now());
 
   const {
     register,
@@ -78,7 +83,7 @@ export default function StudentAssignmentDetailPage() {
   if (!assignment) return <p className="text-sm text-red-600">{error ?? "Assignment not found."}</p>;
 
   const isGraded = submission?.status === "Graded";
-  const isPastDeadline = new Date(assignment.deadline).getTime() < Date.now();
+  const isPastDeadline = new Date(assignment.deadline).getTime() < now;
   const needsRevision = submission?.status === "NeedsRevision";
 
   // Mirrors SubmissionService's rules so the form isn't offered when the API would reject it.
