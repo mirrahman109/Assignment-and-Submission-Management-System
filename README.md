@@ -7,7 +7,6 @@ for a specific class + subject, students submit answers, and teachers grade them
 feedback. Admins provision the users, classes, subjects, and teaching assignments that everything
 else hangs off, and can see every assignment and submission in the system.
 
-Built for the OnnoRokom Projukti Limited Assistant Software Engineer recruitment project.
 
 - **Backend:** ASP.NET Core Web API (.NET 10), EF Core, PostgreSQL, JWT auth, Swagger, Serilog
 - **Frontend:** Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS
